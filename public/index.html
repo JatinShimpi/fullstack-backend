@@ -4,205 +4,1298 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Invoice Details - Dark</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Invoice Details — Monefy</title>
+    <meta name="description" content="Invoice management with payment tracking, line items, and archive functionality.">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📄</text></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <style>
+        /* Reset & base */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg-primary: #0b0f1a;
+            --bg-sidebar: rgba(13, 17, 30, 0.95);
+            --bg-card: rgba(17, 24, 43, 0.85);
+            --bg-card-hover: rgba(25, 34, 58, 0.9);
+            --bg-section: rgba(13, 19, 35, 0.6);
+            --border-primary: rgba(99, 115, 171, 0.15);
+            --border-hover: rgba(99, 115, 171, 0.3);
+            --text-primary: #e8ecf4;
+            --text-secondary: #8b95b0;
+            --text-muted: #5a6380;
+            --accent-blue: #3b82f6;
+
+            --accent-green: #22c55e;
+            --accent-green-dim: rgba(34, 197, 94, 0.15);
+            --accent-amber: #f59e0b;
+            --accent-amber-dim: rgba(245, 158, 11, 0.15);
+            --accent-red: #ef4444;
+            --accent-red-dim: rgba(239, 68, 68, 0.15);
+            --radius-sm: 6px;
+            --radius-md: 12px;
+            --radius-lg: 20px;
+            --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px var(--border-primary);
+            --shadow-modal: 0 25px 60px rgba(0, 0, 0, 0.6);
+            --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-smooth: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            --sidebar-width: 300px;
+        }
+
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #111827;
-            color: #f3f4f6;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            background-image:
+                radial-gradient(ellipse 80% 50% at 50% -20%, rgba(59, 130, 246, 0.08), transparent),
+                radial-gradient(ellipse 60% 40% at 80% 100%, rgba(139, 92, 246, 0.05), transparent);
         }
 
-        .glass {
-            background: rgba(30, 41, 59, 0.95);
-            backdrop-filter: blur(8px);
-            border: 1px solid #374151
+        /* Layout */
+        .layout {
+            display: flex;
+            width: 100%;
+            min-height: 100vh;
         }
 
-        .status-badge {
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-weight: 500;
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            min-width: var(--sidebar-width);
+            background: var(--bg-sidebar);
+            border-right: 1px solid var(--border-primary);
+            display: flex;
+            flex-direction: column;
+            backdrop-filter: blur(24px);
+        }
+
+        .sidebar-header {
+            padding: 24px 20px 16px;
+            border-bottom: 1px solid var(--border-primary);
+        }
+
+        .sidebar-header h2 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sidebar-header h2 span {
+            font-size: 1.2rem;
+        }
+
+        .btn-new-invoice {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            width: 100%;
+            margin-top: 14px;
+            padding: 10px;
+            border-radius: var(--radius-sm);
+            background: var(--accent-blue);
+            color: #fff;
+            font-size: 0.82rem;
+            font-weight: 600;
+            font-family: inherit;
+            border: none;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+
+        }
+
+        .btn-new-invoice:hover {
+            background: #2563eb;
+            transform: translateY(-1px);
+        }
+
+        .sidebar-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px;
+        }
+
+        .sidebar-list::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .sidebar-list::-webkit-scrollbar-thumb {
+            background: var(--border-primary);
+            border-radius: 4px;
+        }
+
+        .inv-item {
+            padding: 14px 14px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            margin-bottom: 4px;
+            transition: all var(--transition-fast);
+            border: 1px solid transparent;
+        }
+
+        .inv-item:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--border-primary);
+        }
+
+        .inv-item.active {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+
+        .inv-item-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .inv-item-number {
             font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-primary);
         }
 
-        .bg-paid {
-            background-color: #065f46;
-            color: #d1fae5
+        .inv-item-badge {
+            font-size: 0.65rem;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 50px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
         }
 
-        .bg-draft {
-            background-color: #92400e;
-            color: #fef3c7;
+        .inv-item-badge.draft {
+            background: var(--accent-amber-dim);
+            color: var(--accent-amber);
+        }
+
+        .inv-item-badge.paid {
+            background: var(--accent-green-dim);
+            color: var(--accent-green);
+        }
+
+        .inv-item-customer {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            margin-bottom: 2px;
+        }
+
+        .inv-item-total {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .sidebar-empty {
+            padding: 32px 20px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            font-style: italic;
+        }
+
+        /* Main area */
+        .main {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            padding: 40px 24px;
+            overflow-y: auto;
+        }
+
+        #app {
+            width: 100%;
+            max-width: 880px;
+            border-radius: var(--radius-lg);
+            background: var(--bg-card);
+            backdrop-filter: blur(24px);
+            box-shadow: var(--shadow-card);
+            overflow: hidden;
+            animation: cardIn 0.5s var(--transition-smooth) both;
+            align-self: flex-start;
+        }
+
+        @keyframes cardIn {
+            from {
+                opacity: 0;
+                transform: translateY(16px) scale(0.98);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* Accent bar */
+        .accent-bar {
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-blue), #8b5cf6, var(--accent-blue));
+            background-size: 200% 100%;
+            animation: shimmer 3s ease infinite;
+        }
+
+        @keyframes shimmer {
+
+            0%,
+            100% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+        }
+
+        /* Header */
+        .invoice-header {
+            padding: 28px 32px;
+            border-bottom: 1px solid var(--border-primary);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .invoice-header h1 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .invoice-header .customer {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-top: 3px;
+        }
+
+        .header-right {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 8px;
+        }
+
+        .header-badges {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 6px;
+            margin-top: 6px;
+        }
+
+        .header-dates {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            text-align: right;
+            line-height: 1.7;
+        }
+
+        .header-dates strong {
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 12px;
+            border-radius: 50px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .badge-draft {
+            background: var(--accent-amber-dim);
+            color: var(--accent-amber);
+            border: 1px solid rgba(245, 158, 11, 0.2);
+        }
+
+        .badge-paid {
+            background: var(--accent-green-dim);
+            color: var(--accent-green);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+        }
+
+        .badge-overdue {
+            background: var(--accent-red-dim);
+            color: var(--accent-red);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            animation: pulse 2s ease infinite;
+        }
+
+        .badge-archived {
+            background: rgba(100, 116, 139, 0.15);
+            color: #94a3b8;
+            border: 1px solid rgba(100, 116, 139, 0.2);
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.7;
+            }
+        }
+
+        .badge-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        /* Section */
+        .section {
+            padding: 24px 32px;
+        }
+
+        .section-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-title::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border-primary);
+        }
+
+        /* Table */
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .items-table thead th {
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+            padding: 10px 14px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-primary);
+        }
+
+        .items-table thead th:not(:first-child) {
+            text-align: right;
+        }
+
+        .items-table tbody tr {
+            transition: background var(--transition-fast);
+        }
+
+        .items-table tbody tr:hover {
+            background: var(--bg-card-hover);
+        }
+
+        .items-table tbody td {
+            padding: 12px 14px;
+            font-size: 0.87rem;
+            border-bottom: 1px solid rgba(99, 115, 171, 0.07);
+        }
+
+        .items-table tbody td:first-child {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .items-table tbody td:not(:first-child) {
+            text-align: right;
+            color: var(--text-secondary);
+        }
+
+        .items-table tbody td:last-child {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        /* Payments + Totals grid */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            border-top: 1px solid var(--border-primary);
+            border-bottom: 1px solid var(--border-primary);
+            background: var(--bg-section);
+        }
+
+        .summary-grid>div {
+            padding: 24px 32px;
+        }
+
+        .summary-grid>div:first-child {
+            border-right: 1px solid var(--border-primary);
+        }
+
+        /* Payments list */
+        .payments-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+
+        .payment-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px;
+            border-radius: var(--radius-sm);
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-primary);
+            margin-bottom: 6px;
+            transition: border-color var(--transition-fast);
+        }
+
+        .payment-item:hover {
+            border-color: var(--border-hover);
+        }
+
+        .payment-date {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .payment-amount {
+            font-size: 0.87rem;
+            font-weight: 600;
+            color: var(--accent-green);
+        }
+
+        .empty-payments {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            font-style: italic;
+            padding: 8px 0;
+        }
+
+        /* Totals */
+        .totals-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0;
+            font-size: 0.87rem;
+        }
+
+        .totals-row .label {
+            color: var(--text-secondary);
+        }
+
+        .totals-row .value {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .totals-row.paid .value {
+            color: var(--accent-green);
+        }
+
+        .totals-divider {
+            height: 1px;
+            background: var(--border-primary);
+            margin: 10px 0;
+        }
+
+        .totals-row.balance {
+            font-size: 1.1rem;
+            padding-top: 10px;
+        }
+
+        .totals-row.balance .label {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .totals-row.balance .value {
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: var(--accent-blue);
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 7px 14px;
+            border-radius: var(--radius-sm);
+            font-size: 0.78rem;
+            font-weight: 600;
+            font-family: inherit;
+            border: none;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .btn-primary {
+            background: var(--accent-blue);
+            color: #fff;
+
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+            transform: translateY(-1px);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-primary);
+        }
+
+        .btn-ghost:hover {
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text-primary);
+        }
+
+        .btn-danger-ghost {
+            background: transparent;
+            color: var(--accent-red);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .btn-danger-ghost:hover {
+            background: var(--accent-red-dim);
+        }
+
+        .btn-success-ghost {
+            background: transparent;
+            color: var(--accent-green);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+        }
+
+        .btn-success-ghost:hover {
+            background: var(--accent-green-dim);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(6px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+            transition: all var(--transition-smooth);
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: #141c30;
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-md);
+            padding: 28px;
+            width: 480px;
+            max-width: 92vw;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-modal);
+            transform: translateY(20px) scale(0.95);
+            transition: transform var(--transition-smooth);
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: translateY(0) scale(1);
+        }
+
+        .modal-content h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.72rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: var(--radius-sm);
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-primary);
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+        }
+
+        .form-group input:focus {
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+
+        .form-group input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .modal-error {
+            font-size: 0.82rem;
+            color: var(--accent-red);
+            margin-top: 8px;
+            display: none;
+        }
+
+        .modal-error.visible {
+            display: block;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        /* Line items form */
+        .line-items-form {
+            margin-bottom: 16px;
+        }
+
+        .line-item-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr auto;
+            gap: 8px;
+            margin-bottom: 8px;
+            align-items: end;
+        }
+
+        .line-item-row input {
+            padding: 9px 10px;
+            border-radius: var(--radius-sm);
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-primary);
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 0.85rem;
+            outline: none;
+        }
+
+        .line-item-row input:focus {
+            border-color: var(--accent-blue);
+        }
+
+        .btn-remove-line {
+            width: 34px;
+            height: 34px;
+            border-radius: var(--radius-sm);
+            background: transparent;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: var(--accent-red);
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all var(--transition-fast);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-remove-line:hover {
+            background: var(--accent-red-dim);
+        }
+
+        .btn-add-line {
+            background: transparent;
+            border: 1px dashed var(--border-hover);
+            color: var(--text-muted);
+            padding: 8px;
+            border-radius: var(--radius-sm);
+            font-family: inherit;
+            font-size: 0.8rem;
+            cursor: pointer;
+            width: 100%;
+            transition: all var(--transition-fast);
+        }
+
+        .btn-add-line:hover {
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text-secondary);
+            border-color: var(--text-muted);
+        }
+
+        /* Empty state */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 80px 32px;
+            text-align: center;
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-state h2 {
+            font-size: 1.2rem;
+            margin-bottom: 6px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            padding: 12px 20px;
+            border-radius: var(--radius-sm);
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #fff;
+            z-index: 200;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all var(--transition-smooth);
+        }
+
+        .toast.visible {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast-success {
+            background: #16a34a;
+        }
+
+        .toast-error {
+            background: #dc2626;
+        }
+
+        /* Loading skeleton */
+        .skeleton {
+            background: linear-gradient(90deg, rgba(255, 255, 255, 0.03) 25%, rgba(255, 255, 255, 0.06) 50%, rgba(255, 255, 255, 0.03) 75%);
+            background-size: 200% 100%;
+            animation: skeletonShimmer 1.5s ease infinite;
+            border-radius: var(--radius-sm);
+        }
+
+        @keyframes skeletonShimmer {
+            0% {
+                background-position: 200% 0;
+            }
+
+            100% {
+                background-position: -200% 0;
+            }
+        }
+
+        .skeleton-text {
+            height: 16px;
+            margin-bottom: 8px;
+        }
+
+        .skeleton-text.short {
+            width: 40%;
+        }
+
+        .skeleton-text.medium {
+            width: 65%;
+        }
+
+        /* Responsive */
+        @media (max-width: 800px) {
+            .sidebar {
+                position: fixed;
+                left: -100%;
+                top: 0;
+                bottom: 0;
+                z-index: 50;
+                transition: left var(--transition-smooth);
+            }
+
+            .sidebar.open {
+                left: 0;
+            }
+
+            .sidebar-overlay {
+                display: none;
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 49;
+            }
+
+            .sidebar-overlay.visible {
+                display: block;
+            }
+
+            .main {
+                padding: 16px 8px;
+            }
+
+            .mobile-menu-btn {
+                display: flex !important;
+            }
+
+            .invoice-header {
+                padding: 20px;
+                flex-direction: column;
+            }
+
+            .header-right {
+                align-items: flex-start;
+            }
+
+            .header-dates {
+                text-align: left;
+            }
+
+            .section {
+                padding: 18px 20px;
+            }
+
+            .summary-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .summary-grid>div:first-child {
+                border-right: none;
+                border-bottom: 1px solid var(--border-primary);
+            }
+
+            .summary-grid>div {
+                padding: 18px 20px;
+            }
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            position: fixed;
+            top: 14px;
+            left: 14px;
+            z-index: 48;
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-sm);
+            background: var(--bg-card);
+            border: 1px solid var(--border-primary);
+            color: var(--text-primary);
+            font-size: 1.2rem;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
         }
     </style>
 </head>
 
-<body class="min-h-screen py-10">
+<body>
+    <!-- Mobile menu button -->
+    <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
 
-    <div class="max-w-4xl mx-auto glass shadow-xl rounded-xl overflow-hidden pb-10" id="app">
-        <!-- Header -->
-        <div class="border-b border-gray-700 p-8 flex justify-between items-center relative">
-            <div class="absolute top-0 left-0 w-full h-1 bg-blue-500"></div>
-            <div>
-                <h1 class="text-3xl font-bold text-gray-100" id="inv-number">Loading...</h1>
-                <p class="text-gray-500 mt-1" id="inv-customer">...</p>
+    <div class="layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h2><span>📄</span> Invoices</h2>
+                <button class="btn-new-invoice" onclick="openCreateModal()">+ New Invoice</button>
             </div>
-            <div class="text-right flex flex-col items-end gap-2">
-                <span id="inv-status" class="status-badge bg-draft">DRAFT</span>
-                <div class="text-sm text-gray-400 mt-2">
-                    <p><strong>Issue Date:</strong> <span id="inv-issue">--</span></p>
-                    <p><strong>Due Date:</strong> <span id="inv-due">--</span></p>
+            <div class="sidebar-list" id="invoice-list">
+                <div class="sidebar-empty">Loading invoices...</div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="main">
+            <div id="app">
+                <!-- Empty state (when no invoice selected) -->
+                <div id="empty-state" class="empty-state">
+                    <div class="empty-state-icon">📋</div>
+                    <h2>Select an Invoice</h2>
+                    <p>Choose an invoice from the sidebar or create a new one.</p>
+                    <button class="btn btn-primary" onclick="openCreateModal()">+ Create Invoice</button>
+                </div>
+
+                <!-- Loading skeleton -->
+                <div id="loading-state" style="display: none; padding: 32px;">
+                    <div class="skeleton skeleton-text medium"></div>
+                    <div class="skeleton skeleton-text short" style="margin-top: 8px;"></div>
+                    <div style="margin-top: 28px;">
+                        <div class="skeleton skeleton-text"></div>
+                        <div class="skeleton skeleton-text"></div>
+                        <div class="skeleton skeleton-text medium"></div>
+                    </div>
+                </div>
+
+                <!-- Invoice detail view -->
+                <div id="detail-view" style="display: none;">
+                    <div class="accent-bar"></div>
+
+                    <!-- Header -->
+                    <div class="invoice-header">
+                        <div>
+                            <h1 id="inv-number">—</h1>
+                            <p class="customer" id="inv-customer">—</p>
+                        </div>
+                        <div class="header-right">
+                            <div class="header-badges">
+                                <span id="inv-status" class="badge badge-draft"><span class="badge-dot"></span>
+                                    DRAFT</span>
+                                <span id="inv-overdue" class="badge badge-overdue" style="display:none;"><span
+                                        class="badge-dot"></span> OVERDUE</span>
+                                <span id="inv-archived" class="badge badge-archived" style="display:none;">📦
+                                    ARCHIVED</span>
+                            </div>
+                            <div class="header-dates">
+                                <p><strong>Issued:</strong> <span id="inv-issue">—</span></p>
+                                <p><strong>Due:</strong> <span id="inv-due">—</span></p>
+                            </div>
+                            <div class="header-actions">
+                                <button class="btn btn-ghost" onclick="openEditModal()" id="btn-edit">✏️ Edit</button>
+                                <button id="btn-archive" class="btn btn-danger-ghost" onclick="archiveInvoice()">📦
+                                    Archive</button>
+                                <button id="btn-restore" class="btn btn-success-ghost" style="display:none;"
+                                    onclick="restoreInvoice()">♻️ Restore</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Line Items -->
+                    <div class="section">
+                        <div class="section-title">Line Items</div>
+                        <table class="items-table">
+                            <thead>
+                                <tr>
+                                    <th>Description</th>
+                                    <th>Qty</th>
+                                    <th>Unit Price</th>
+                                    <th>Line Total</th>
+                                </tr>
+                            </thead>
+                            <tbody id="line-items-body"></tbody>
+                        </table>
+                    </div>
+
+                    <!-- Summary Grid -->
+                    <div class="summary-grid">
+                        <div>
+                            <div class="payments-header">
+                                <div class="section-title" style="margin-bottom:0;">Payments</div>
+                                <button class="btn btn-primary" onclick="openPaymentModal()" id="btn-add-payment">+ Add
+                                    Payment</button>
+                            </div>
+                            <div id="payments-list">
+                                <p class="empty-payments">No payments recorded yet.</p>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="section-title">Summary</div>
+                            <div class="totals-row"><span class="label">Total</span><span class="value"
+                                    id="lbl-total">$0.00</span></div>
+                            <div class="totals-row paid"><span class="label">Amount Paid</span><span class="value"
+                                    id="lbl-paid">$0.00</span></div>
+                            <div class="totals-divider"></div>
+                            <div class="totals-row balance"><span class="label">Balance Due</span><span class="value"
+                                    id="lbl-balance">$0.00</span></div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-
-        <!-- Line Items Section -->
-        <div class="p-8">
-            <h2 class="text-xl font-semibold mb-4 text-gray-300 border-b border-gray-700 pb-2">Line Items</h2>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="text-gray-400 text-sm border-b border-gray-700">
-                            <th class="py-3 px-4 font-medium">Description</th>
-                            <th class="py-3 px-4 font-medium text-right">Qty</th>
-                            <th class="py-3 px-4 font-medium text-right">Unit Price</th>
-                            <th class="py-3 px-4 font-medium text-right">Line Total</th>
-                        </tr>
-                    </thead>
-                    <tbody id="line-items-body">
-                        <!-- Dynamic -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Totals & Payments Section -->
-        <div class="p-8 grid grid-cols-2 gap-8 border-t border-b border-gray-700 bg-gray-800 bg-opacity-50">
-            <!-- Payments Info -->
-            <div>
-                <div class="flex justify-between items-center mb-4 border-b border-gray-600 pb-2">
-                    <h2 class="text-xl font-semibold text-gray-300">Payments</h2>
-                    <button onclick="openPaymentModal()"
-                        class="text-sm bg-blue-500 hover:bg-blue-600 text-white py-1 px-3 rounded transition">+ Add
-                        Payment</button>
-                </div>
-                <ul id="payments-list" class="space-y-2 text-sm text-gray-400">
-                    <!-- Dynamic -->
-                    <li class="italic text-gray-500">No payments verified yet.</li>
-                </ul>
-            </div>
-
-            <!-- Totals Info -->
-            <div class="space-y-3">
-                <div class="flex justify-between text-gray-400">
-                    <span>Total Amount:</span>
-                    <span class="font-medium" id="lbl-total">$0.00</span>
-                </div>
-                <div class="flex justify-between text-gray-400">
-                    <span>Amount Paid:</span>
-                    <span class="font-medium text-green-400" id="lbl-paid">$0.00</span>
-                </div>
-                <div class="flex justify-between text-xl font-bold text-gray-200 pt-3 border-t border-gray-600">
-                    <span>Balance Due:</span>
-                    <span id="lbl-balance">$0.00</span>
-                </div>
-            </div>
-        </div>
-
     </div>
 
     <!-- Payment Modal -->
-    <div id="payment-modal"
-        class="fixed inset-0 bg-black bg-opacity-70 hidden flex justify-center items-center backdrop-blur-sm z-50">
-        <div class="bg-gray-800 p-6 rounded shadow-2xl w-96 border border-gray-700" id="payment-modal-content">
-            <h3 class="text-lg font-bold mb-4 text-gray-200">Add Payment</h3>
-            <label class="block text-sm text-gray-400 mb-1">Amount</label>
-            <input type="number" id="payment-amount"
-                class="w-full bg-gray-900 border border-gray-700 text-white rounded p-2 mb-4 focus:ring-1 focus:ring-blue-500 outline-none"
-                placeholder="0.00" step="0.01">
-
-            <p class="text-xs text-red-400 hidden mb-3" id="payment-error"></p>
-
-            <div class="flex justify-end gap-2">
-                <button onclick="closePaymentModal()"
-                    class="px-3 py-2 text-gray-400 hover:bg-gray-700 rounded">Cancel</button>
-                <button onclick="submitPayment()"
-                    class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded">Submit</button>
+    <div id="payment-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h3>Add Payment</h3>
+            <div class="form-group">
+                <label for="payment-amount">Payment Amount ($)</label>
+                <input type="number" id="payment-amount" placeholder="0.00" step="0.01" min="0.01">
+            </div>
+            <p class="modal-error" id="payment-error"></p>
+            <div class="modal-actions">
+                <button class="btn btn-ghost" onclick="closeModal('payment-modal')">Cancel</button>
+                <button class="btn btn-primary" onclick="submitPayment()">Submit Payment</button>
             </div>
         </div>
     </div>
 
+    <!-- Create/Edit Invoice Modal -->
+    <div id="invoice-modal" class="modal-overlay">
+        <div class="modal-content" style="width: 560px;">
+            <h3 id="invoice-modal-title">New Invoice</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="f-inv-number">Invoice Number</label>
+                    <input type="text" id="f-inv-number" placeholder="INV-001">
+                </div>
+                <div class="form-group">
+                    <label for="f-customer">Customer Name</label>
+                    <input type="text" id="f-customer" placeholder="Acme Corp">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="f-issue-date">Issue Date</label>
+                    <input type="date" id="f-issue-date">
+                </div>
+                <div class="form-group">
+                    <label for="f-due-date">Due Date</label>
+                    <input type="date" id="f-due-date">
+                </div>
+            </div>
+
+            <div class="section-title" style="margin-top: 8px;">Line Items</div>
+            <div id="line-items-form"></div>
+            <button class="btn-add-line" onclick="addLineItemRow()">+ Add Line Item</button>
+
+            <p class="modal-error" id="invoice-error"></p>
+            <div class="modal-actions">
+                <button class="btn btn-ghost" onclick="closeModal('invoice-modal')">Cancel</button>
+                <button class="btn btn-primary" id="btn-save-invoice" onclick="saveInvoice()">Create Invoice</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="toast"></div>
+
     <script>
-        const API_BASE = 'https://fullstack-backend-kodt.onrender.com/api';
+
+        const API_BASE = window.location.hostname === 'localhost'
+            ? 'http://localhost:5000/api'
+            : `${window.location.origin}/api`;
+
         let currentInvoiceId = null;
+        let currentInvoice = null;
+        let editMode = false;
 
-        async function init() {
+
+        function showToast(msg, type = 'success') {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.className = `toast toast-${type} visible`;
+            setTimeout(() => t.classList.remove('visible'), 3000);
+        }
+
+
+        function openModal(id) {
+            document.getElementById(id).classList.add('active');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+            // Reset errors
+            document.querySelectorAll('.modal-error').forEach(e => e.classList.remove('visible'));
+        }
+
+
+        async function loadInvoiceList() {
             try {
-                // Check for valid invoice logic, assume ID 1 natively for testing.
-                let res = await fetch(`${API_BASE}/invoices/1`);
+                const res = await fetch(`${API_BASE}/invoices`);
+                const invoices = await res.json();
+                const container = document.getElementById('invoice-list');
 
-                if (res.status === 404) {
-                    // Let's seed initial data if none exists
-                    const seedReq = await fetch(`${API_BASE}/invoices/seed`, { method: 'POST' });
-                    const seedRes = await seedReq.json();
-                    currentInvoiceId = seedRes.invoiceId;
-                    res = await fetch(`${API_BASE}/invoices/${currentInvoiceId}`);
-                } else {
-                    currentInvoiceId = 1;
+                if (invoices.length === 0) {
+                    container.innerHTML = '<div class="sidebar-empty">No invoices yet.<br>Create your first one!</div>';
+                    return;
                 }
 
-                const invoice = await res.json();
-                renderInvoice(invoice);
+                container.innerHTML = invoices.map(inv => `
+                    <div class="inv-item ${inv.id === currentInvoiceId ? 'active' : ''}"
+                         onclick="loadInvoice(${inv.id})" id="inv-item-${inv.id}">
+                        <div class="inv-item-top">
+                            <span class="inv-item-number">${escapeHtml(inv.invoiceNumber)}</span>
+                            <span class="inv-item-badge ${inv.status.toLowerCase()}">${inv.status}</span>
+                        </div>
+                        <div class="inv-item-customer">${escapeHtml(inv.customerName)}</div>
+                        <div class="inv-item-total">$${inv.total.toFixed(2)}</div>
+                    </div>
+                `).join('');
             } catch (err) {
-                console.error('Failed init:', err);
+                console.error('Failed to load invoice list:', err);
             }
         }
+
+
+        async function loadInvoice(id) {
+            currentInvoiceId = id;
+
+            // Update sidebar selection
+            document.querySelectorAll('.inv-item').forEach(el => el.classList.remove('active'));
+            const item = document.getElementById(`inv-item-${id}`);
+            if (item) item.classList.add('active');
+
+            // Show loading
+            document.getElementById('empty-state').style.display = 'none';
+            document.getElementById('loading-state').style.display = 'block';
+            document.getElementById('detail-view').style.display = 'none';
+
+            // Close mobile sidebar
+            if (window.innerWidth <= 800) {
+                document.getElementById('sidebar').classList.remove('open');
+                document.getElementById('sidebar-overlay').classList.remove('visible');
+            }
+
+            try {
+                const res = await fetch(`${API_BASE}/invoices/${id}`);
+                if (!res.ok) throw new Error('Not found');
+                const invoice = await res.json();
+                currentInvoice = invoice;
+                renderInvoice(invoice);
+
+                document.getElementById('loading-state').style.display = 'none';
+                document.getElementById('detail-view').style.display = 'block';
+            } catch (err) {
+                document.getElementById('loading-state').innerHTML =
+                    `<p style="color:var(--accent-red);font-size:0.9rem;">⚠️ Failed to load invoice.</p>`;
+            }
+        }
+
 
         function renderInvoice(data) {
-            document.getElementById('inv-number').innerText = data.invoiceNumber;
-            document.getElementById('inv-customer').innerText = data.customerName;
-            document.getElementById('inv-issue').innerText = data.issueDate;
-            document.getElementById('inv-due').innerText = data.dueDate;
+            document.getElementById('inv-number').textContent = data.invoiceNumber;
+            document.getElementById('inv-customer').textContent = data.customerName;
+            document.getElementById('inv-issue').textContent = formatDate(data.issueDate);
+            document.getElementById('inv-due').textContent = formatDate(data.dueDate);
 
+            // Status badge
             const statusEl = document.getElementById('inv-status');
-            statusEl.innerText = data.status;
-            statusEl.className = `status-badge ${data.status === 'PAID' ? 'bg-paid' : 'bg-draft'}`;
+            statusEl.innerHTML = `<span class="badge-dot"></span> ${data.status}`;
+            statusEl.className = `badge ${data.status === 'PAID' ? 'badge-paid' : 'badge-draft'}`;
+
+            // Overdue check
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('inv-overdue').style.display =
+                (data.dueDate < today && data.status !== 'PAID') ? 'inline-flex' : 'none';
+
+            // Archived
+            const isArch = data.isArchived;
+            document.getElementById('inv-archived').style.display = isArch ? 'inline-flex' : 'none';
+            document.getElementById('btn-archive').style.display = isArch ? 'none' : 'inline-flex';
+            document.getElementById('btn-restore').style.display = isArch ? 'inline-flex' : 'none';
+
+            // Hide edit + add payment if PAID
+            document.getElementById('btn-add-payment').style.display = data.status === 'PAID' ? 'none' : 'inline-flex';
+            document.getElementById('btn-edit').style.display = data.status === 'PAID' ? 'none' : 'inline-flex';
 
             // Totals
-            document.getElementById('lbl-total').innerText = `$${data.total.toFixed(2)}`;
-            document.getElementById('lbl-paid').innerText = `$${data.amountPaid.toFixed(2)}`;
-            document.getElementById('lbl-balance').innerText = `$${data.balanceDue.toFixed(2)}`;
+            document.getElementById('lbl-total').textContent = `$${data.total.toFixed(2)}`;
+            document.getElementById('lbl-paid').textContent = `$${data.amountPaid.toFixed(2)}`;
+            document.getElementById('lbl-balance').textContent = `$${data.balanceDue.toFixed(2)}`;
 
-            // Line Items
-            const linesHtml = data.lines.map(l => `
-            <tr class="border-b border-gray-700 hover:bg-gray-800">
-                <td class="py-3 px-4 text-gray-300">${l.description}</td>
-                <td class="py-3 px-4 text-right text-gray-300">${l.quantity}</td>
-                <td class="py-3 px-4 text-right text-gray-300">$${l.unitPrice.toFixed(2)}</td>
-                <td class="py-3 px-4 text-right font-medium text-gray-200">$${(l.quantity * l.unitPrice).toFixed(2)}</td>
-            </tr>
-        `).join('');
-            document.getElementById('line-items-body').innerHTML = linesHtml;
+            // Line items
+            document.getElementById('line-items-body').innerHTML = data.lines.map(l => `
+                <tr>
+                    <td>${escapeHtml(l.description)}</td>
+                    <td>${l.quantity}</td>
+                    <td>$${l.unitPrice.toFixed(2)}</td>
+                    <td>$${(l.quantity * l.unitPrice).toFixed(2)}</td>
+                </tr>
+            `).join('');
 
             // Payments
+            const payList = document.getElementById('payments-list');
             if (data.payments && data.payments.length > 0) {
-                document.getElementById('payments-list').innerHTML = data.payments.map(p => `
-                <li class="flex justify-between items-center py-1">
-                    <span class="text-gray-400">Payment on ${p.paymentDate}</span>
-                    <span class="font-medium text-green-400">+$${p.amount.toFixed(2)}</span>
-                </li>
-            `).join('');
+                payList.innerHTML = data.payments.map(p => `
+                    <div class="payment-item">
+                        <span class="payment-date">${formatDate(p.paymentDate)}</span>
+                        <span class="payment-amount">+$${p.amount.toFixed(2)}</span>
+                    </div>
+                `).join('');
+            } else {
+                payList.innerHTML = '<p class="empty-payments">No payments recorded yet.</p>';
             }
         }
 
-        function openPaymentModal() {
-            document.getElementById('payment-modal').classList.remove('hidden');
+
+        function formatDate(s) {
+            if (!s) return '—';
+            const d = new Date(s + 'T00:00:00');
+            return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
         }
 
-        function closePaymentModal() {
-            document.getElementById('payment-modal').classList.add('hidden');
-            document.getElementById('payment-error').classList.add('hidden');
+        function escapeHtml(str) {
+            const d = document.createElement('div');
+            d.textContent = str;
+            return d.innerHTML;
+        }
+
+        function toggleSidebar() {
+            const sb = document.getElementById('sidebar');
+            const ol = document.getElementById('sidebar-overlay');
+            sb.classList.toggle('open');
+            ol.classList.toggle('visible');
+        }
+
+
+        function openPaymentModal() {
+            document.getElementById('payment-amount').value = '';
+            openModal('payment-modal');
+            setTimeout(() => document.getElementById('payment-amount').focus(), 100);
         }
 
         async function submitPayment() {
@@ -210,8 +1303,8 @@
             const errEl = document.getElementById('payment-error');
 
             if (!amount || amount <= 0) {
-                errEl.innerText = 'Amount must be greater than 0';
-                errEl.classList.remove('hidden');
+                errEl.textContent = 'Amount must be greater than 0';
+                errEl.classList.add('visible');
                 return;
             }
 
@@ -222,16 +1315,202 @@
                     body: JSON.stringify({ amount })
                 });
                 const result = await res.json();
-
                 if (!res.ok) {
-                    errEl.innerText = result.error || 'Payment failed';
-                    errEl.classList.remove('hidden');
+                    errEl.textContent = result.error || 'Payment failed';
+                    errEl.classList.add('visible');
                 } else {
-                    closePaymentModal();
-                    init(); // Reload invoice
+                    closeModal('payment-modal');
+                    showToast(`Payment of $${amount.toFixed(2)} recorded!`);
+                    loadInvoice(currentInvoiceId);
+                    loadInvoiceList();
                 }
             } catch (err) {
-                console.error(err);
+                errEl.textContent = 'Network error';
+                errEl.classList.add('visible');
+            }
+        }
+
+
+        function openCreateModal() {
+            editMode = false;
+            document.getElementById('invoice-modal-title').textContent = 'New Invoice';
+            document.getElementById('btn-save-invoice').textContent = 'Create Invoice';
+            document.getElementById('f-inv-number').value = '';
+            document.getElementById('f-customer').value = '';
+            document.getElementById('f-issue-date').value = new Date().toISOString().split('T')[0];
+            document.getElementById('f-due-date').value = '';
+            document.getElementById('f-inv-number').disabled = false;
+
+            // Default 1 empty line item
+            document.getElementById('line-items-form').innerHTML = '';
+            addLineItemRow();
+
+            openModal('invoice-modal');
+        }
+
+        function openEditModal() {
+            if (!currentInvoice) return;
+            editMode = true;
+            document.getElementById('invoice-modal-title').textContent = 'Edit Invoice';
+            document.getElementById('btn-save-invoice').textContent = 'Save Changes';
+            document.getElementById('f-inv-number').value = currentInvoice.invoiceNumber;
+            document.getElementById('f-customer').value = currentInvoice.customerName;
+            document.getElementById('f-issue-date').value = currentInvoice.issueDate;
+            document.getElementById('f-due-date').value = currentInvoice.dueDate;
+            document.getElementById('f-inv-number').disabled = false;
+
+            // Populate existing line items
+            document.getElementById('line-items-form').innerHTML = '';
+            currentInvoice.lines.forEach(l => addLineItemRow(l.description, l.quantity, l.unitPrice));
+
+            openModal('invoice-modal');
+        }
+
+        function addLineItemRow(desc = '', qty = '', price = '') {
+            const container = document.getElementById('line-items-form');
+            const row = document.createElement('div');
+            row.className = 'line-item-row';
+            row.innerHTML = `
+                <input type="text" placeholder="Description" value="${escapeHtml(String(desc))}">
+                <input type="number" placeholder="Qty" min="1" step="1" value="${qty}">
+                <input type="number" placeholder="Price" min="0" step="0.01" value="${price}">
+                <button class="btn-remove-line" onclick="this.parentElement.remove()" title="Remove">×</button>
+            `;
+            container.appendChild(row);
+        }
+
+        async function saveInvoice() {
+            const errEl = document.getElementById('invoice-error');
+            const invoiceNumber = document.getElementById('f-inv-number').value.trim();
+            const customerName = document.getElementById('f-customer').value.trim();
+            const issueDate = document.getElementById('f-issue-date').value;
+            const dueDate = document.getElementById('f-due-date').value;
+
+            // Gather line items
+            const rows = document.querySelectorAll('#line-items-form .line-item-row');
+            const lines = [];
+            for (const row of rows) {
+                const inputs = row.querySelectorAll('input');
+                const desc = inputs[0].value.trim();
+                const qty = parseFloat(inputs[1].value);
+                const price = parseFloat(inputs[2].value);
+                if (!desc || !qty || !price) {
+                    errEl.textContent = 'Please fill in all line item fields';
+                    errEl.classList.add('visible');
+                    return;
+                }
+                lines.push({ description: desc, quantity: qty, unitPrice: price });
+            }
+
+            if (!invoiceNumber || !customerName || !issueDate || !dueDate) {
+                errEl.textContent = 'Please fill in all invoice fields';
+                errEl.classList.add('visible');
+                return;
+            }
+
+            if (lines.length === 0) {
+                errEl.textContent = 'Add at least one line item';
+                errEl.classList.add('visible');
+                return;
+            }
+
+            const body = { invoiceNumber, customerName, issueDate, dueDate, lines };
+
+            try {
+                let res;
+                if (editMode) {
+                    res = await fetch(`${API_BASE}/invoices/${currentInvoiceId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(body)
+                    });
+                } else {
+                    res = await fetch(`${API_BASE}/invoices`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(body)
+                    });
+                }
+
+                const result = await res.json();
+                if (!res.ok) {
+                    errEl.textContent = result.error || 'Failed to save';
+                    errEl.classList.add('visible');
+                    return;
+                }
+
+                closeModal('invoice-modal');
+                showToast(editMode ? 'Invoice updated!' : 'Invoice created!');
+
+                const newId = editMode ? currentInvoiceId : result.invoiceId;
+                await loadInvoiceList();
+                loadInvoice(newId);
+            } catch (err) {
+                errEl.textContent = 'Network error';
+                errEl.classList.add('visible');
+            }
+        }
+
+
+        async function archiveInvoice() {
+            try {
+                const res = await fetch(`${API_BASE}/invoices/archive`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: currentInvoiceId })
+                });
+                if (res.ok) {
+                    showToast('Invoice archived');
+                    loadInvoice(currentInvoiceId);
+                    loadInvoiceList();
+                }
+            } catch (err) { showToast('Failed to archive', 'error'); }
+        }
+
+        async function restoreInvoice() {
+            try {
+                const res = await fetch(`${API_BASE}/invoices/restore`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: currentInvoiceId })
+                });
+                if (res.ok) {
+                    showToast('Invoice restored');
+                    loadInvoice(currentInvoiceId);
+                    loadInvoiceList();
+                }
+            } catch (err) { showToast('Failed to restore', 'error'); }
+        }
+
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeModal('payment-modal');
+                closeModal('invoice-modal');
+            }
+        });
+
+        // Close modals on backdrop click
+        document.querySelectorAll('.modal-overlay').forEach(m => {
+            m.addEventListener('click', (e) => { if (e.target === e.currentTarget) closeModal(m.id); });
+        });
+
+
+        async function init() {
+            await loadInvoiceList();
+
+            // Auto-seed if empty
+            const res = await fetch(`${API_BASE}/invoices`);
+            const invoices = await res.json();
+            if (invoices.length === 0) {
+                await fetch(`${API_BASE}/invoices/seed`, { method: 'POST' });
+                await loadInvoiceList();
+                // Auto-select first
+                const res2 = await fetch(`${API_BASE}/invoices`);
+                const inv2 = await res2.json();
+                if (inv2.length > 0) loadInvoice(inv2[0].id);
+            } else {
+                loadInvoice(invoices[0].id);
             }
         }
 
